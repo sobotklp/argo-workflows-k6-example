@@ -3,16 +3,64 @@ kind: WorkflowTemplate
 metadata:
     generateName: lewis-test-
     name: hello-world-with-mutex
+    labels:
+        workflows.argoproj.io/test: "true"
+    annotations:
+        workflows.argoproj.io/maintainer: "@sobotklp"
+        workflows.argoproj.io/version: ">= 3.6.0"
+        workflows.argoproj.io/description: This example demonstrates using a parameter
 spec:
     serviceAccountName: argo-workflow
-    arguments: {}
+    arguments:
+        parameters:
+        - name: message
+          value: hello world
     entrypoint: hello-world
     synchronization:
         mutexes:
         - name: run-only-once-per-namespace
     templates:
     - name: hello-world
+      inputs:
+        parameters:
+        - name: message
       container:
         image: busybox
         command: [echo]
-        args: ["hello world"]
+        args: ["{{ "{{" }}inputs.parameters.message}}"]
+---
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+    generateName: lewis-test-
+    name: hello-world-with-configmap-param
+    labels:
+        workflows.argoproj.io/test: "true"
+    annotations:
+        workflows.argoproj.io/maintainer: "@sobotklp"
+        workflows.argoproj.io/version: ">= 3.6.0"
+        workflows.argoproj.io/description: This example demonstrates using a parameter from a ConfigMap
+        workflows.argoproj.io/verify.py: |
+            assert status["phase"] == "Succeeded"
+spec:
+    serviceAccountName: argo-workflow
+    arguments:
+        parameters:
+        - name: message
+          valueFrom:
+            configMapKeyRef:
+              name: simple-parameters
+              key: message
+    entrypoint: hello-world
+    synchronization:
+        mutexes:
+        - name: run-only-once-per-namespace
+    templates:
+    - name: hello-world
+      inputs:
+        parameters:
+        - name: message
+      container:
+        image: busybox
+        command: [echo]
+        args: ["{{ "{{" }}inputs.parameters.message}}"]

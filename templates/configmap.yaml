@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: simple-parameters
+  labels:
+    # Needed for the informer to detect this ConfigMap.
+    workflows.argoproj.io/configmap-type: Parameter
+data:
+    # Define a parameter named "message" with the value "hello world".
+    message: The beatings will continue until morale improves.
