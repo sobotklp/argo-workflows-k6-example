@@ -1,0 +1,38 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: argo-ui-token-role
+rules:
+  - apiGroups:
+      - argoproj.io
+    resources:
+      - workflows
+    verbs:
+      - patch
+      - list
+      - update
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: argo-ui-sa
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: argo-ui-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: argo-ui-token-role
+subjects:
+  - kind: ServiceAccount
+    name: argo-ui-sa
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: argo-ui-token
+  annotations:
+    kubernetes.io/service-account.name: argo-ui-sa
+type: kubernetes.io/service-account-token

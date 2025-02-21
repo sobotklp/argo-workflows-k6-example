@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+    generateName: lewis-test-
+    name: hello-world-with-mutex
+spec:
+    serviceAccountName: argo-workflow
+    arguments: {}
+    entrypoint: hello-world
+    synchronization:
+        mutexes:
+        - name: run-only-once-per-namespace
+    templates:
+    - name: hello-world
+      container:
+        image: busybox
+        command: [echo]
+        args: ["hello world"]

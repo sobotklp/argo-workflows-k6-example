@@ -1,0 +1,13 @@
+apiVersion: v2
+appVersion: v3.4.3
+name: argo-workflows
+description: A Helm chart for testing Argo Workflows
+type: application
+# The chart version. This version number should be incremented each time you make changes
+# to the chart and its templates, including the app version.
+version: 0.2.0
+
+dependencies:
+  - name: argo-workflows
+    version: 0.45.7
+    repository: https://argoproj.github.io/argo-helm
