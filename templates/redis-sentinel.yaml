@@ -1,0 +1,49 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+    generateName: lewis-test-
+    name: redis-sentinel-failover
+    labels:
+        workflows.argoproj.io/test: "true"
+    annotations:
+        workflows.argoproj.io/maintainer: "@sobotklp"
+        workflows.argoproj.io/version: ">= 3.6.0"
+        workflows.argoproj.io/description: Force a Redis Sentinel failover
+spec:
+    entrypoint: begin
+    serviceAccountName: argo-workflow
+    synchronization:
+        mutexes:  # Only allow one of these workflows to run at a time
+        - name: run-only-once-per-namespace
+    podMetadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+    ttlStrategy:
+      secondsAfterCompletion: 300
+    podGC:
+      strategy: OnPodCompletion
+    onExit: exit-handler
+    templates:
+    - name: begin
+      container:
+        image: redis:7.4
+        command: ["redis-cli"]
+        args: ["-h", "argo-workflows-redis-ephemeral", "-p", "26379", "SENTINEL", "FAILOVER", "mymaster"]
+    - name: exit-handler
+      steps:
+      - - name: celebrate
+          template: celebrate
+          when: "{{ "{{" }}workflow.status}} == 'Succeeded'"
+        - name: cry
+          template: cry
+          when: "{{ "{{" }}workflow.status}} != 'Succeeded'"
+    - name: celebrate
+      container:
+        image: busybox
+        command: [echo]
+        args: ["onExit: it succeeded!"]
+    - name: cry
+      container:
+        image: busybox
+        command: [echo]
+        args: ["onExit: it failed!"]
