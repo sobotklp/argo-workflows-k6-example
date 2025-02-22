@@ -13,3 +13,29 @@ argo-workflows:
   controller:
     workflowNamespaces:
       - argo-workflows
+
+redis-ephemeral:
+  auth:
+    enabled: false
+  commonConfiguration: |-
+    maxmemory 461mb
+    maxmemory-policy allkeys-lru
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: 1
+  master:
+    updateStrategy:
+      type: OnDelete
+  replica:
+    updateStrategy:
+      type: OnDelete
+    resources:
+      requests:
+        memory: 512Mi
+        cpu: 250m
+      limits:
+        memory: 512Mi
+  sentinel:
+    enabled: true
+    downAfterMilliseconds: 10000 # consistent with redis-ha settings

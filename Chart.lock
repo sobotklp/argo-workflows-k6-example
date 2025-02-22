@@ -2,5 +2,8 @@ dependencies:
 - name: argo-workflows
   repository: https://argoproj.github.io/argo-helm
   version: 0.45.7
-digest: sha256:a69304a28a50f9b4575917a2e89386562c0a06f990ebc2a0d890d2f432056463
-generated: "2025-02-21T13:23:51.594172-07:00"
+- name: redis
+  repository: https://charts.bitnami.com/bitnami
+  version: 20.8.0
+digest: sha256:37ff984e35020aff8b77e02578b5afdfd69f6e6efe2d3b2f74782f11a33a0579
+generated: "2025-02-22T09:01:02.987713-07:00"
