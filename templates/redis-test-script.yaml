@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-test-script
+data:
+   k6-redis.js: |-
+{{ .Files.Get "files/k6-redis.js" | indent 4 }}

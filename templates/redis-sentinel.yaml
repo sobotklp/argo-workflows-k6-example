@@ -11,7 +11,7 @@ metadata:
         workflows.argoproj.io/description: Force a Redis Sentinel failover
 spec:
     entrypoint: begin
-    serviceAccountName: argo-workflow
+    serviceAccountName: argo-workflows-sa
     synchronization:
         mutexes:  # Only allow one of these workflows to run at a time
         - name: run-only-once-per-namespace

@@ -1,9 +1,8 @@
 #!/bin/bash
 
 KUBE_CONTEXT=docker-desktop
-NAMESPACE=argo-workflows
+NAMESPACE=workflows
 
-# Create namespace with auto-injection
 kubectl create namespace $NAMESPACE --context=$KUBE_CONTEXT
 kubectl label namespace $NAMESPACE istio-injection=enabled --context=$KUBE_CONTEXT
 

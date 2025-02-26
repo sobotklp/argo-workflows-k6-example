@@ -10,7 +10,7 @@ metadata:
         workflows.argoproj.io/version: ">= 3.6.0"
         workflows.argoproj.io/description: This example demonstrates using a parameter
 spec:
-    serviceAccountName: argo-workflow
+    serviceAccountName: argo-workflows-sa
     arguments:
         parameters:
         - name: message
@@ -43,23 +43,20 @@ metadata:
         workflows.argoproj.io/verify.py: |
             assert status["phase"] == "Succeeded"
 spec:
-    serviceAccountName: argo-workflow
-    arguments:
-        parameters:
-        - name: message
-          valueFrom:
-            configMapKeyRef:
-              name: simple-parameters
-              key: message
+    serviceAccountName: argo-workflows-sa
     entrypoint: hello-world
     synchronization:
-        mutexes:
+        mutexes:  # Only allow one of these workflows to run at a time
         - name: run-only-once-per-namespace
     templates:
     - name: hello-world
       inputs:
         parameters:
         - name: message
+          valueFrom:
+            configMapKeyRef:
+              name: simple-parameters
+              key: message
       container:
         image: busybox
         command: [echo]

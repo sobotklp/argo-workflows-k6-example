@@ -1,19 +1,4 @@
 ---
-argo-workflows:
-  workflow:
-    serviceAccount:
-      create: true
-      name: "argo-workflow"
-    rbac:
-      create: true
-  server:
-    authModes:
-      - server
-      - client
-  controller:
-    workflowNamespaces:
-      - argo-workflows
-
 redis-ephemeral:
   auth:
     enabled: false
