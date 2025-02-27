@@ -15,9 +15,9 @@ spec:
     synchronization:
         mutexes:  # Only allow one of these workflows to run at a time
         - name: run-only-once-per-namespace
-    podMetadata:
-      annotations:
-        sidecar.istio.io/inject: "false"  # Istio causes network issues on startup
+#    podMetadata:
+#      annotations:
+#        sidecar.istio.io/inject: "false"  # TODO: Decide if we want to use Istio on k6 pods
     ttlStrategy:
       secondsAfterCompletion: 300
     podGC:
@@ -64,9 +64,9 @@ spec:
     synchronization:
         mutexes:  # Only allow one of these workflows to run at a time
         - name: run-only-once-per-namespace
-    podMetadata:
-      annotations:
-        sidecar.istio.io/inject: "false" # Istio causes network issues on startup
+#    podMetadata:
+#      annotations:
+#        sidecar.istio.io/inject: "false" # Istio causes network issues on startup
     ttlStrategy:
       secondsAfterCompletion: 300
     podGC:
@@ -90,12 +90,15 @@ spec:
           metadata:
             generateName: k6-redis-loadtest
           spec:
-            parallelism: {{ "{{" }}workflow.parameters.parallelism}}
+            parallelism: {{ "{{" }}inputs.parameters.parallelism}}
             script:
               configMap:
                 name: redis-test-script
                 file: k6-redis.js
             arguments: "-e duration=20s -e rate=100 --env prevu=10 --env maxuv=20"
+      inputs:
+        parameters:
+          - name: parallelism
         # Resource templates can have output parameters extracted from the fields of the
         # resource. Two techniques are provided: jsonpath and a jq filter
       outputs:

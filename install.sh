@@ -3,6 +3,9 @@
 KUBE_CONTEXT=docker-desktop
 NAMESPACE=argo-workflows
 
+# If you use Istio, ensure you have native sidecars enabled, otherwise k6 pods will not immediately have network access
+#istioctl install --context=docker-desktop --set profile=demo --set values.pilot.env.ENABLE_NATIVE_SIDECARS=true -y
+
 # Create namespace with auto-injection
 kubectl create namespace $NAMESPACE --context=$KUBE_CONTEXT
 kubectl label namespace $NAMESPACE istio-injection=enabled --context=$KUBE_CONTEXT
