@@ -17,7 +17,7 @@ spec:
         - name: run-only-once-per-namespace
     podMetadata:
       annotations:
-        sidecar.istio.io/inject: "false"
+        sidecar.istio.io/inject: "false"  # Istio causes network issues on startup
     ttlStrategy:
       secondsAfterCompletion: 300
     podGC:
@@ -47,3 +47,62 @@ spec:
         image: busybox
         command: [echo]
         args: ["onExit: it failed!"]
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+    generateName: lewis-test-
+    name: redis-sentinel-loadtest
+    labels:
+        workflows.argoproj.io/test: "true"
+    annotations:
+        workflows.argoproj.io/maintainer: "@sobotklp"
+        workflows.argoproj.io/version: ">= 3.6.0"
+        workflows.argoproj.io/description: Perform a Redis Sentinel k6 test
+spec:
+    entrypoint: begin
+    serviceAccountName: argo-workflows-sa
+    synchronization:
+        mutexes:  # Only allow one of these workflows to run at a time
+        - name: run-only-once-per-namespace
+    podMetadata:
+      annotations:
+        sidecar.istio.io/inject: "false" # Istio causes network issues on startup
+    ttlStrategy:
+      secondsAfterCompletion: 300
+    podGC:
+      strategy: OnPodCompletion
+    arguments:
+      parameters:
+        - name: parallelism
+          value: "4"
+    templates:
+    - name: begin
+      resource:
+        action: create
+        # successCondition and failureCondition are optional expressions which are
+        # evaluated upon every update of the resource.
+        successCondition: status.stage == finished
+        failureCondition: status.stage == failed
+        setOwnerReference: true
+        manifest: |
+          apiVersion: k6.io/v1alpha1
+          kind: TestRun
+          metadata:
+            generateName: k6-redis-loadtest
+          spec:
+            parallelism: {{ "{{" }}workflow.parameters.parallelism}}
+            script:
+              configMap:
+                name: redis-test-script
+                file: k6-redis.js
+            arguments: "-e duration=20s -e rate=100 --env prevu=10 --env maxuv=20"
+        # Resource templates can have output parameters extracted from the fields of the
+        # resource. Two techniques are provided: jsonpath and a jq filter
+      outputs:
+        parameters:
+        - name: test-run-name
+          valueFrom:
+            jsonPath: "{.metadata.name}"
+        - name: test-run-obj
+          valueFrom:
+            jqFilter: '.'

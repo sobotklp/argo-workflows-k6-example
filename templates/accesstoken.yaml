@@ -13,6 +13,14 @@ rules:
       - list
       - update
       - create
+  - apiGroups:
+      - k6.io
+    resources:
+      - testruns
+    verbs:
+      - create
+      - list
+      - get
 ---
 apiVersion: v1
 kind: ServiceAccount
