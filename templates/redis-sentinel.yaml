@@ -96,6 +96,12 @@ spec:
             parameters:
             - name: parallelism
               value: "{{ "{{" }}workflow.parameters.parallelism}}"
+      - - name: wait-for-test-completion
+          template: wait-for-test-completion
+          arguments:
+            parameters:
+            - name: test-run-name
+              value: "{{ "{{" }}steps.create-testrun.outputs.parameters.test-run-name}}"
       - - name: collect-artifact
           template: collect-artifact
     - name: delay
@@ -106,7 +112,7 @@ spec:
         action: create
         # successCondition and failureCondition are optional expressions which are
         # evaluated upon every update of the resource.
-        successCondition: status.stage == finished
+        successCondition: status.stage == started
         failureCondition: status.stage == error
         setOwnerReference: true
         manifest: |
@@ -147,6 +153,19 @@ spec:
         - name: test-run-obj
           valueFrom:
             jqFilter: '.'
+    - name: wait-for-test-completion
+      inputs:
+        parameters:
+          - name: test-run-name
+      resource:
+        action: get
+        successCondition: status.stage == finished
+        failureCondition: status.stage == error
+        manifest: |
+          apiVersion: k6.io/v1alpha1
+          kind: TestRun
+          metadata:
+            name: {{ "{{" }}inputs.parameters.test-run-name}}
     - name: collect-artifact
       container:
         image: alpine:3.8
