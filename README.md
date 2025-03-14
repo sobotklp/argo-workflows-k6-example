@@ -6,6 +6,8 @@ Getting Started
 
 In order to run this demo, you'll need a Docker environment like Docker Desktop, kubectl, istioctl and helm.
 
+These instructions assume you're using Docker Desktop.
+
 
 ### Install Istio
 If Istio is already running in your cluster, skip this step.
@@ -24,4 +26,7 @@ Run the following command to install the Helm chart into your `docker-desktop` K
 ```
 bash update.sh
 ```
+
+### Load the Argo Workflows UI
+In your browser, go to http://localhost:2746
 
