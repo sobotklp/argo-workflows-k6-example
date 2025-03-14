@@ -153,6 +153,7 @@ spec:
         volumeMounts:
         - name: workdir
           mountPath: /tmp
+          readOnly: true
       outputs:
       #  parameters:
       #  - name: hello-param  # name of output parameter

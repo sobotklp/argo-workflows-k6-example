@@ -27,7 +27,8 @@ helm upgrade --install --kube-context=$KUBE_CONTEXT -n=argo-artifacts argo-artif
 ACCESS_KEY=$(kubectl get secret argo-artifacts --context=$KUBE_CONTEXT -n argo-artifacts -o jsonpath="{.data.rootUser}" | base64 --decode)
 SECRET_KEY=$(kubectl get secret argo-artifacts --context=$KUBE_CONTEXT -n argo-artifacts -o jsonpath="{.data.rootPassword}" | base64 --decode)
 
-# Create a secret in the workflows namespace with the Minio credentials
+# Create a secret in the workflows namespace with the Minio credentials.
+# Workflows will need this to access artifact storage.
 kubectl create secret --context=$KUBE_CONTEXT -n workflows generic my-minio-cred --from-literal=access-key="$ACCESS_KEY" --from-literal=secret-key="$SECRET_KEY"
 
 helm upgrade --install --kube-context=$KUBE_CONTEXT -n=argo-workflows argo-workflows argoproj/argo-workflows --set server.serviceType=LoadBalancer --set-json 'server.authModes=["client","server"]' --set-json 'workflow.serviceAccount={"create":true, "name": "argo-workflow"}' --set-json 'artifactRepository={"s3": {"bucket": "argo-artifacts", "endpoint": "argo-artifacts.argo-artifacts:9000", "insecure": true, "accessKeySecret": {"name": "my-minio-cred", "key": "access-key"}, "secretKeySecret": {"name": "my-minio-cred", "key": "secret-key"}}}'
