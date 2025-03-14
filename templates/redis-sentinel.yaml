@@ -154,12 +154,14 @@ spec:
         - name: workdir
           mountPath: /tmp
       outputs:
-        parameters:
-        - name: hello-param  # name of output parameter
-          valueFrom:
-            path: /tmp/results.json
+      #  parameters:
+      #  - name: hello-param  # name of output parameter
+      #    valueFrom:
+      #      path: /tmp/results.json
       # Export a global artifact. The artifact will be programmatically available in the completed workflow.
-        #artifacts:
-        #- name: k6_results
-        #  path: /tmp/results.json
-        #  globalName: redis-sentinel-loadtest-results
+        artifacts:
+        - name: k6_results
+          path: /tmp/results.json
+          globalName: redis-sentinel-loadtest-results
+          archive:
+            none: { }  # Prevent compression so Argo Workflows can render the file

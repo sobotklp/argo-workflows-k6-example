@@ -14,7 +14,7 @@ istioctl install --context=docker-desktop --set profile=demo --set values.pilot.
 ```
 
 ### Run the install script
-Run the following script to install the K6 operator and Argo Workflows into the `docker-desktop` Kubernetes context.
+Run the following script to install the K6 operator, Argo Workflows and Minio (S3-compatible persistence layer for storing artifacts) into the `docker-desktop` Kubernetes context.
 ```
 bash install.sh
 ```
