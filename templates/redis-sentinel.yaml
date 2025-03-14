@@ -47,6 +47,7 @@ spec:
         image: busybox
         command: [echo]
         args: ["onExit: it failed!"]
+---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
@@ -75,14 +76,38 @@ spec:
       parameters:
         - name: parallelism
           value: "4"
+    # Create a volume claim for the duration of this workflow
+    volumeClaimTemplates:
+    - metadata:
+        name: workdir
+      spec:
+        accessModes: [ "ReadWriteMany" ]  # k6 pods may run on multiple nodes
+        resources:
+          requests:
+            storage: 1Gi
     templates:
     - name: begin
+      steps:
+      - - name: delay
+          template: delay
+      - - name: create-testrun
+          template: create-testrun
+          arguments:
+            parameters:
+            - name: parallelism
+              value: "{{ "{{" }}workflow.parameters.parallelism}}"
+      - - name: collect-artifact
+          template: collect-artifact
+    - name: delay
+      suspend:
+        duration: "1"
+    - name: create-testrun
       resource:
         action: create
         # successCondition and failureCondition are optional expressions which are
         # evaluated upon every update of the resource.
         successCondition: status.stage == finished
-        failureCondition: status.stage == failed
+        failureCondition: status.stage == error
         setOwnerReference: true
         manifest: |
           apiVersion: k6.io/v1alpha1
@@ -95,7 +120,20 @@ spec:
               configMap:
                 name: redis-test-script
                 file: k6-redis.js
-            arguments: "-e duration=20s -e rate=100 --env prevu=10 --env maxuv=20"
+            arguments: "-e duration=30s -e rate=100 --env prevu=10 --env maxuv=20 --out json=/tmp/results.json"
+            runner:
+              volumes:
+              - name: workdir
+                persistentVolumeClaim:
+                  claimName: {{ "{{" }}workflow.name}}-workdir
+              volumeMounts:
+              - name: workdir
+                mountPath: /tmp
+              env:
+              - name: K6_STATSD_ENABLE_TAGS
+                value: "true"
+              - name: K6_STATSD_ADDR
+                value: datadog-agent.my-namespace.svc.cluster.local:8125
       inputs:
         parameters:
           - name: parallelism
@@ -109,3 +147,19 @@ spec:
         - name: test-run-obj
           valueFrom:
             jqFilter: '.'
+    - name: collect-artifact
+      container:
+        image: alpine:3.8
+        volumeMounts:
+        - name: workdir
+          mountPath: /tmp
+      outputs:
+        parameters:
+        - name: hello-param  # name of output parameter
+          valueFrom:
+            path: /tmp/results.json
+      # Export a global artifact. The artifact will be programmatically available in the completed workflow.
+        #artifacts:
+        #- name: k6_results
+        #  path: /tmp/results.json
+        #  globalName: redis-sentinel-loadtest-results
