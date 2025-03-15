@@ -12,3 +12,6 @@ dependencies:
     alias: redis-ephemeral
     version: '20.8.0'
     repository: 'https://charts.bitnami.com/bitnami'
+  - name: echo-server
+    version: '0.3.0'
+    repository: 'https://ealenn.github.io/charts'

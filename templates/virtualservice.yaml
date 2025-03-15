@@ -1,0 +1,55 @@
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+    name: http-echo-service
+spec:
+    hosts:
+    - argo-workflows-echo-server.{{ $.Release.Namespace }}.svc.cluster.local
+    - argo-workflows-echo-server
+    http:
+    # Any requests to /slow will be delayed by 2 seconds
+    - match:
+      - uri:
+          prefix: /slow
+        ignoreUriCase: true
+      route:
+      - destination:
+          host: argo-workflows-echo-server.{{ $.Release.Namespace }}.svc.cluster.local
+          port:
+            number: 80
+      fault:
+        delay:
+          percentage:
+            value: 100
+          fixedDelay: 2s
+    # Any requests with the User-Agent header starting with "k6/" will be delayed by 2 seconds
+    - match:
+      - uri:
+          prefix: /
+        headers:
+          User-Agent:
+            regex: "k6/.*"
+      route:
+      - destination:
+          host: argo-workflows-echo-server.{{ $.Release.Namespace }}.svc.cluster.local
+          port:
+            number: 80
+      fault:
+        delay:
+          percentage:
+            value: 100
+          fixedDelay: 2s
+    # Normal requests
+    - match:
+      - uri:
+          prefix: /
+      route:
+      - destination:
+          host: argo-workflows-echo-server.{{ $.Release.Namespace }}.svc.cluster.local
+          port:
+            number: 80
+
+
+
+
+
